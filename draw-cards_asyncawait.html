@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Deck of Cards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        img {
+            height: 150px;
+            margin: 10px;
+        }
+        button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Deck of Cards</h1>
+    <div id="cardOutput"></div>
+    <button id="drawCard" onclick="drawCard()">Draw a Card</button>
+
+    <script>
+        let deckId = null; // This will store the deck ID
+
+        // This function fetches a new deck from the API
+        async function initializeDeck() {
+            try {
+                const response = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
+                const data = await response.json();
+                deckId = data.deck_id; // Store the deck ID for later use
+                document.getElementById('drawCard').disabled = false; // Enable the draw button once the deck is ready
+            } catch (err) {
+                console.error('Error initializing deck:', err);
+                document.getElementById('cardOutput').innerText = 'Failed to initialize deck';
+            }
+        }
+
+        // This function draws a card from the deck
+        async function drawCard() {
+            if (deckId) {
+                try {
+                    const response = await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`);
+                    const data = await response.json();
+                    if (data.cards.length > 0) {
+                        const card = data.cards[0];
+                        document.getElementById('cardOutput').innerHTML = `<img src="${card.image}" alt="${card.value} of ${card.suit}">`;
+                    } else {
+                        document.getElementById('cardOutput').innerText = 'No more cards left in the deck';
+                        document.getElementById('drawCard').disabled = true; // Disable the button when no cards are left
+                    }
+                } catch (err) {
+                    console.error('Error drawing a card:', err);
+                    document.getElementById('cardOutput').innerText = 'Failed to draw a card';
+                }
+            }
+        }
+
+        // Disable the draw button initially until the deck is ready
+        document.getElementById('drawCard').disabled = true;
+        // Initialize the deck when the page loads
+        window.onload = initializeDeck;
+    </script>
+</body>
+</html>
